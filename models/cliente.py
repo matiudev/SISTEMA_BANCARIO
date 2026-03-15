@@ -1,5 +1,7 @@
 from db.db import get_connection
 
+#djawfhjawfajwfjaw
+#erawjfdajwfjawfa
 class Cliente:
     def __init__(self, rut, nombres, apellidos, fecha_nacimiento, direccion, telefono, correo, id = None):
         self._id = id
