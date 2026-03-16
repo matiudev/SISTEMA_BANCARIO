@@ -33,10 +33,10 @@ def menu():
         print("\n0. Salir")
 
         opcion = input("\nSeleccione una opción: ")
-
+"""
         if opcion == "1":
             iniciar_sesion()
-
+        pass
         elif opcion == "2":
             registrar_usuario()
     
@@ -73,7 +73,7 @@ def menu():
 
         else:
             print("Opción inválida, intente nuevamente.")
-
+"""
 init_db()
 menu()
 
