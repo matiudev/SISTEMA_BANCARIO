@@ -2,45 +2,77 @@ from db.db import init_db
 from models.cliente import Cliente
 
 #Hola
+
 def menu():
+
     while True:
-        print("\n=== SISTEMA BANCARIO ===")
-        print("1 Registrar cliente")
-        print("2 LISTAR CLIENTE")
-        print("3 Consultar saldo")
-        print("4 Depósito")
-        print("5 Retiro")
-        print("6 Transferencia")
-        print("0 Salir")
 
-        op = input("Seleccione: ")
+        print("\n==============================")
+        print("      SISTEMA BANCARIO")
+        print("==============================")
 
-        if op == "1":
-            Cliente.registrar_cliente()
-        elif op == "2":
-            clientes = Cliente.listar_clientes()
-            for c in clientes:
-                print(c)
-            # crear_cuenta()
-            pass
-        elif op == "3":
-            # consultar_saldo()
-            pass
-        elif op == "4":
-            # deposito()
-            pass
-        elif op == "5":
-            # retiro()
-            pass
-        elif op == "6":
-            # transferencia()
-            pass
-        elif op == "0":
+        print("\n--- AUTENTICACIÓN ---")
+        print("1. Iniciar sesión")
+        print("2. Registrar usuario")
+
+        print("\n--- CLIENTES (CRUD) ---")
+        print("3. Registrar cliente")
+        print("4. Listar clientes")
+        print("5. Actualizar cliente")
+        print("6. Eliminar cliente")
+
+        print("\n--- CUENTAS ---")
+        print("7. Crear cuenta")
+        print("8. Consultar saldo")
+
+        print("\n--- TRANSACCIONES ---")
+        print("9. Depositar dinero")
+        print("10. Retirar dinero")
+        print("11. Transferencia entre cuentas")
+
+        print("\n0. Salir")
+
+        opcion = input("\nSeleccione una opción: ")
+
+        if opcion == "1":
+            iniciar_sesion()
+
+        elif opcion == "2":
+            registrar_usuario()
+    
+        elif opcion == "3":
+            registrar_cliente()
+
+        elif opcion == "4":
+            listar_clientes()
+
+        elif opcion == "5":
+            actualizar_cliente()
+
+        elif opcion == "6":
+            eliminar_cliente()
+
+        elif opcion == "7":
+            crear_cuenta()
+
+        elif opcion == "8":
+            consultar_saldo()
+
+        elif opcion == "9":
+            deposito()
+
+        elif opcion == "10":
+            retiro()
+
+        elif opcion == "11":
+            transferencia()
+
+        elif opcion == "0":
+            print("Saliendo del sistema...")
             break
+
         else:
-            print("Opción inválida")
-
-
+            print("Opción inválida, intente nuevamente.")
 
 init_db()
 menu()
