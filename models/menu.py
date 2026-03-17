@@ -30,15 +30,15 @@ class Menu:
             rol = usuario["rol"]
 
             if rol == "cliente":
-                self.menu_cliente()
+                self.menu_cliente(usuario)
             elif rol == "empleado":
-                self.menu_empleado()
+                self.menu_empleado(usuario)
             
             # elif rol == "gerente":
             #     Menu.menu_gerente()
 
 
-    def menu_empleado(self):
+    def menu_empleado(self, usuario):
         while True:
             print("\n--- MENU EMPLEADO ---")
             print("1. Registrar Cliente")
@@ -75,7 +75,7 @@ class Menu:
                     print("❌ Opcion Invalida")
 
 
-    def menu_cliente(self):
+    def menu_cliente(self, usuario):
         while True:
             print("\n--- MENU CLIENTE ---")
             print("1. Consultar Saldo")

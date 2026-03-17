@@ -1,5 +1,5 @@
 from db.db import get_connection
-
+import getpass
 class Cliente:
     def __init__(self, rut, nombres, apellidos, fecha_nacimiento, direccion, telefono, correo, id = None):
         self._id = id
@@ -27,19 +27,27 @@ class Cliente:
         direccion = input("Dirección: ")
         telefono = input("Teléfono: ")
         correo = input("Correo: ")
+        password = getpass.getpass("Ingrese su Contraseña: ")
 
         with get_connection() as connection:
             cursor = connection.cursor()
             
             # COMANDO SQL
             insert_query = """
-                INSERT INTO clientes (rut, nombres, apellidos, fecha_nacimiento, direccion, telefono, correo)
-                VALUES (?,?,?,?,?,?,?);
+                INSERT INTO usuario (rut, nombre, apellido, fecha_nacimiento, direccion, telefono, correo, password)
+                VALUES (?,?,?,?,?,?,?,?);
             """
 
-            client_data = (rut, nombres, apellidos, fecha_nacimiento, direccion, telefono, correo)
-            cursor.execute(insert_query, client_data)
+            usuario_data = (rut, nombres, apellidos, fecha_nacimiento, direccion, telefono, correo, password)
+            cursor.execute(insert_query, usuario_data)
+
+            usuario_id = cursor.lastrowid
+
+            insert_query = """INSERT INTO cliente (usuario_id) VALUES (?);"""
+
+            cursor.execute(insert_query, (usuario_id,))
             connection.commit()
+        
 
 
     @classmethod

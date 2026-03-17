@@ -44,5 +44,5 @@ with get_connection() as connection:
     cursor.execute("INSERT INTO cliente (usuario_id) VALUES (?)", (2,))
     cursor.execute("INSERT INTO empleado (usuario_id, id_sucursal) VALUES (?, ?)", (1, 1))
 
-    print("se creoo los primeros dos usuarios")
+    print("Usuarios Insertados ✅")
     connection.commit()
