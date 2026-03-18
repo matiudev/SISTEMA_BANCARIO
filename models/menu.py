@@ -25,7 +25,7 @@ class Menu:
                 continue
 
             print("✅ Inicio de sesión Exitoso!")
-            print("Bienvenido...")
+            print(f"Bienvenido {usuario['nombre']}...")
 
             rol = usuario["rol"]
 
@@ -54,21 +54,30 @@ class Menu:
 
             match opcion:
                 case "1":
-                    Cliente.registrar_cliente()
+                    clientes = Cliente.listar_clientes()
+                    for c in clientes:
+                        print(f"ID: {c.id} - Nombre: {c.nombres} {c.apellidos}")
                 case "2":
                     Cuenta.crear_cuenta()
                 case "3":
                     Cuenta.consultar_saldo()
-                case "4":
-                    print("Función en desarrollo...")
-                case "5":
-                    print("Función en desarrollo...")
+                case "4" | "5":
+                    print("Recuerda realizar los depósitos/retiros vía INSERT por ahora.")
                 case "6":
-                    print("Función en desarrollo...")
+                    print("Función delegada a módulos de cliente o manual.")
                 case "7":
+                    print("\n" + "="*80)
+                    print(f"{'ID':<4} | {'RUT':<12} | {'NOMBRE COMPLETO':<25} | {'CORREO'}")
+                    print("-" * 80)
+                    
                     clientes = Cliente.listar_clientes()
-                    for cliente in clientes:
-                        print(cliente)
+                    
+                    for c in clientes:
+                        # Accedemos a los atributos del objeto que creó tu compañero
+                        nombre_full = f"{c.nombres} {c.apellidos}"
+                        print(f"{c.id:<4} | {c.rut:<12} | {nombre_full:<25} | {c.correo}")
+                    
+                    print("="*80)
                 case "0":
                     return
                 case _:
@@ -87,11 +96,11 @@ class Menu:
 
             match opcion:
                 case "1":
-                    print("Función en desarrollo...")
+                    Cuenta.consultar_saldo(usuario)
                 case "2":
-                    print("Función en desarrollo...")
+                    Cuenta.ver_historial_cliente(usuario["id"])
                 case "3":
-                    print("Función en desarrollo...")
+                    Cuenta.transferir_a_terceros(usuario["id"])
                 case "0":
                     return
                 case _:

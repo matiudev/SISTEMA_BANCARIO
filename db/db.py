@@ -27,7 +27,7 @@ def init_db():
         )""")
 
         cursor.execute("""
-           CREATE TABLE IF NOT EXISTS cliente(
+            CREATE TABLE IF NOT EXISTS cliente(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario_id INTEGER NOT NULL,
     
@@ -75,16 +75,38 @@ def init_db():
             id_cliente INTEGER NOT NULL,
             id_tipo_cuenta INTEGER NOT NULL,
             saldo DECIMAL(10, 2) DEFAULT 0.0,
-            estado TEXT DEFAULT 'Activa',
-                       
+            est ado TEXT DEFAULT 'Activa',                       
             FOREIGN KEY (id_cliente) REFERENCES cliente(id),
             FOREIGN KEY (id_tipo_cuenta) REFERENCES tipo_cuenta(id)
         )""")
         
-        # cursor.execute("""
-        #     CREATE TABLE IF NOT EXISTS transacciones(
-        #                )            
-        #     """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS movimientos(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_cuenta_origen INTEGER NOT NULL,
+            id_cuenta_destino INTEGER, -- Solo se usa en transferencias, puede ser NULL
+            tipo_movimiento TEXT NOT NULL, -- 'DEPOSITO', 'RETIRO', 'TRANSFERENCIA'
+            monto INTEGER NOT NULL, -- Valor en CLP
+            fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+            glosa TEXT,
+            FOREIGN KEY (id_cuenta_origen) REFERENCES cuentas(id),
+            FOREIGN KEY (id_cuenta_destino) REFERENCES cuentas(id)
+        )""")
+
+        tipos_a_insertar = [
+            (1, 'Corriente'),
+            (2, 'Ahorro'),
+            (3, 'Vista')
+        ]
+
+        cursor.executemany("""
+            INSERT OR IGNORE INTO tipo_cuenta (id, tipo_cuenta) 
+            VALUES (?, ?)
+        """, tipos_a_insertar)
+
+        # 3. FINALMENTE: El commit
+        connection.commit()
+        print("✅ DB Inicializada y Datos Base Cargados!")
 
         connection.commit()
         print("✅ DB Inicializada con Exito!")

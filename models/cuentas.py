@@ -10,36 +10,326 @@ class Cuenta:
 
     @staticmethod
     def crear_cuenta():
-        print("\n=== APERTURA DE CUENTA ===")
-        # Es ideal listar los clientes primero o pedir el ID
-        id_cliente = input("Ingrese el ID del cliente dueño de la cuenta: ")
-        tipo = input("Tipo de cuenta (Ahorro/Corriente): ")
-        saldo_inicial = float(input("Monto de apertura: "))
-
-        with get_connection() as connection:
-            cursor = connection.cursor()
-            query = """
-                INSERT INTO cuentas (id_cliente, id_tipo_cuenta, saldo)
-                VALUES (?, ?, ?)
-            """
-            cursor.execute(query, (id_cliente, tipo, saldo_inicial))
-            connection.commit()
-            print("✅ Cuenta creada exitosamente.")
-
-    @staticmethod
-    def consultar_saldo():
-        print("\n=== CONSULTA DE SALDO ===")
-        id_cta = input("Ingrese el ID de la cuenta: ")
+        from db.db import get_connection
+        
+        print("\n=== APERTURA DE NUEVA CUENTA ===")
         
         with get_connection() as connection:
             cursor = connection.cursor()
-            query = "SELECT saldo, id_tipo_cuenta, estado FROM cuentas WHERE id = ?"
-            cursor.execute(query, (id_cta,))
-            row = cursor.fetchone()
             
-            if row:
-                print(f"\nCuenta N°: {id_cta} | Tipo: {row[1]}")
-                print(f"Estado: {row[2]}")
-                print(f"Saldo Actual: ${row[0]}")
+            # 1. MOSTRAR LISTA DE CLIENTES DISPONIBLES
+            # Hacemos un JOIN con la tabla usuario para mostrar datos legibles
+            query_clientes = """
+                SELECT c.id, u.rut, u.nombre, u.apellido 
+                FROM cliente c
+                JOIN usuario u ON c.usuario_id = u.id
+            """
+            cursor.execute(query_clientes)
+            clientes = cursor.fetchall()
+
+            if not clientes:
+                print("❌ No hay clientes registrados en el sistema. Debe crear uno primero.")
+                return
+
+            print(f"{'ID':<4} | {'RUT':<12} | {'NOMBRE COMPLETO'}")
+            print("-" * 45)
+            for cl in clientes:
+                nombre_full = f"{cl[2]} {cl[3]}"
+                print(f"{cl[0]:<4} | {cl[1]:<12} | {nombre_full}")
+            
+            # 2. SELECCIÓN DEL DUEÑO
+            id_cliente = input("\nIngrese el ID del cliente de la lista superior: ")
+            
+            # 3. SELECCIÓN DE TIPO (Usando los IDs de tu tabla tipo_cuenta)
+            print("\nTipos de cuenta: 1. Corriente | 2. Ahorro | 3. Vista")
+            id_tipo = input("Seleccione el N° del tipo de cuenta: ")
+            
+            # 4. MONTO INICIAL
+            try:
+                monto_inicial = int(input("Monto de apertura (CLP): $"))
+            except ValueError:
+                print("❌ Monto inválido. Debe ser un número entero.")
+                return
+
+            # 5. EJECUCIÓN DE LA APERTURA
+            try:
+                # Insertar la cuenta
+                query_insert = """
+                    INSERT INTO cuentas (id_cliente, id_tipo_cuenta, saldo, estado)
+                    VALUES (?, ?, ?, 'ACTIVA')
+                """
+                cursor.execute(query_insert, (id_cliente, id_tipo, monto_inicial))
+                
+                id_nueva_cuenta = cursor.lastrowid
+
+                # Registrar el movimiento inicial si hay dinero
+                if monto_inicial > 0:
+                    # Usamos tu función auxiliar registrar_movimiento
+                    Cuenta.registrar_movimiento(
+                        id_nueva_cuenta, 
+                        'DEPOSITO', 
+                        monto_inicial, 
+                        glosa="Apertura de cuenta"
+                    )
+
+                connection.commit()
+                print(f"\n✅ Cuenta N°{id_nueva_cuenta} creada con éxito.")
+                print(f"💰 Saldo inicial: {Cuenta.formato_clp(monto_inicial)}")
+            
+            except Exception as e:
+                connection.rollback()
+                print(f"❌ Error al crear la cuenta: {e}")
+
+    @staticmethod
+    def consultar_saldo(usuario_logueado):
+        """
+        usuario_logueado: Es el diccionario que devuelve tu Auth.login
+        Contiene: usuario["id"], usuario["rol"], etc.
+        """
+        print("\n=== CONSULTA DE SALDO ===")
+        
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            
+            # Si es CLIENTE, primero le mostramos sus cuentas para que elija
+            if usuario_logueado["rol"] == "cliente":
+                query_lista = """
+                    SELECT cta.id, tc.tipo_cuenta, cta.saldo 
+                    FROM cuentas cta
+                    JOIN tipo_cuenta tc ON cta.id_tipo_cuenta = tc.id
+                    JOIN cliente c ON cta.id_cliente = c.id
+                    WHERE c.usuario_id = ?
+                """
+                cursor.execute(query_lista, (usuario_logueado["id"],))
+                mis_cuentas = cursor.fetchall()
+                
+                if not mis_cuentas:
+                    print("❌ No tienes cuentas asociadas.")
+                    return
+
+                print("\nSeleccione una de sus cuentas:")
+                for c in mis_cuentas:
+                    print(f"ID Cuenta: {c[0]} | Tipo: {c[1]}")
+                
+                id_cta = input("\nIngrese el ID de la cuenta a detallar: ")
+            
             else:
-                print("❌ Cuenta no encontrada.")
+                # Si es EMPLEADO, puede preguntar por cualquier ID directamente
+                id_cta = input("Ingrese el ID de la cuenta del cliente: ")
+
+            # Consulta final con JOIN para traer el nombre del tipo de cuenta
+            query_detalle = """
+                SELECT cta.saldo, tc.tipo_cuenta, cta.estado 
+                FROM cuentas cta
+                JOIN tipo_cuenta tc ON cta.id_tipo_cuenta = tc.id
+                WHERE cta.id = ?
+            """
+            cursor.execute(query_detalle, (id_cta,))
+            row = cursor.fetchone()
+
+            if row:
+                
+                saldo_final = Cuenta.formato_clp(row[0])
+                
+                print(f"\n✅ Detalle Cuenta N°: {id_cta}")
+                print(f"   Tipo: {row[1]}")
+                print(f"   Estado: {row[2]}")
+                print(f"   Saldo Actual: ${saldo_final}")
+            else:
+                print("❌ Cuenta no encontrada o no tiene permisos.")
+
+    def obtener_cuentas_cliente(usuario_id):
+        """
+        Retorna una lista de las cuentas que pertenecen al usuario logueado.
+        usuario_id: proviene del objeto 'usuario' obtenido en el login.
+        """
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            #Buscamos las cuentas vinculando usuario -> cliente -> cuentas
+            query = """
+                SELECT cta.id, tc.tipo_cuenta, cta.saldo, cta.estado
+                FROM cuentas cta
+                JOIN tipo_cuenta tc ON cta.id_tipo_cuenta = tc.id
+                JOIN cliente c ON cta.id_cliente = c.id
+                WHERE c.usuario_id = ?
+            """
+            cursor.execute(query, (usuario_id,))
+            return cursor.fetchall()
+        
+    @staticmethod
+    def registrar_movimiento(id_origen, tipo, monto, id_destino=None, glosa=""):
+        """
+        Función interna para dejar constancia de cada operación.
+        monto: valor en CLP (Entero)
+        tipo: 'DEPOSITO', 'RETIRO' o 'TRANSFERENCIA'
+        """
+        from db.db import get_connection
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            query = """
+                INSERT INTO movimientos (id_cuenta_origen, id_cuenta_destino, tipo_movimiento, monto, glosa)
+                VALUES (?, ?, ?, ?, ?)
+            """
+            cursor.execute(query, (id_origen, id_destino, tipo, monto, glosa))
+            connection.commit()
+
+    @staticmethod
+    def transferir_a_terceros(usuario_id):
+        from db.db import get_connection
+        
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            
+            # 1. BUSCAR CUENTAS PERMITIDAS (Agregamos cta.estado al SELECT)
+            query_origen = """
+                SELECT cta.id, tc.tipo_cuenta, cta.saldo, cta.estado
+                FROM cuentas cta
+                JOIN tipo_cuenta tc ON cta.id_tipo_cuenta = tc.id
+                JOIN cliente c ON cta.id_cliente = c.id
+                WHERE c.usuario_id = ? AND tc.tipo_cuenta IN ('Corriente', 'Vista')
+            """
+            cursor.execute(query_origen, (usuario_id,))
+            cuentas_disponibles = cursor.fetchall()
+
+            if not cuentas_disponibles:
+                print("\n❌ No posees cuentas (Corriente o Vista) habilitadas para transferir.")
+                return
+
+            print("\n=== SELECCIONE CUENTA DE ORIGEN ===")
+            for i, c in enumerate(cuentas_disponibles, 1):
+                print(f"{i}. {c[1]} - Saldo: ${c[2]:,.0f}".replace(",", "."))
+            
+            opcion = input("\nSeleccione una cuenta (o '0' para cancelar): ")
+            if opcion == "0" or not opcion.isdigit() or int(opcion) > len(cuentas_disponibles):
+                return
+
+            cuenta_origen = cuentas_disponibles[int(opcion) - 1]
+            id_origen = cuenta_origen[0]
+            saldo_origen = cuenta_origen[2]
+            estado_origen = cuenta_origen[3] # Guardamos el estado
+
+            # --- VALIDACIÓN DE ESTADO AGREGADA ---
+            if estado_origen != 'ACTIVA':
+                print(f"\n❌ Operación cancelada. La cuenta seleccionada está {estado_origen}.")
+                return
+            # -------------------------------------
+
+            # 2. IDENTIFICAR DESTINATARIO POR RUT
+            print("\n--- DATOS DEL DESTINATARIO ---")
+            rut_destino = input("Ingrese el RUT del destinatario: ")
+            
+            query_destinatario = """
+                SELECT cta.id, u.nombre, u.apellido 
+                FROM cuentas cta
+                JOIN cliente c ON cta.id_cliente = c.id
+                JOIN usuario u ON c.usuario_id = u.id
+                WHERE u.rut = ? LIMIT 1
+            """
+            cursor.execute(query_destinatario, (rut_destino,))
+            datos_destinio = cursor.fetchone()
+
+            if not datos_destinio:
+                print("❌ El RUT ingresado no existe en el sistema.")
+                return
+
+            id_cta_destino = datos_destinio[0]
+            nombre_destinatario = f"{datos_destinio[1]} {datos_destinio[2]}"
+
+            # 3. INGRESO Y VALIDACIÓN DE MONTO
+            print(f"Destinatario: {nombre_destinatario}")
+            monto = int(input("Ingrese monto a transferir (CLP): $"))
+
+            if monto > saldo_origen:
+                print(f"\n❌ Saldo insuficiente. Tu saldo es de ${saldo_origen:,.0f}".replace(",", "."))
+                print("Volviendo al menú...")
+                return
+
+            # 4. EJECUCIÓN DE LA TRANSACCIÓN (Atómica)
+            try:
+                # Descontar de origen
+                cursor.execute("UPDATE cuentas SET saldo = saldo - ? WHERE id = ?", (monto, id_origen))
+                # Sumar a destino
+                cursor.execute("UPDATE cuentas SET saldo = saldo + ? WHERE id = ?", (monto, id_cta_destino))
+                
+                # Registrar el movimiento
+                cursor.execute("""
+                    INSERT INTO movimientos (id_cuenta_origen, id_cuenta_destino, tipo_movimiento, monto, glosa)
+                    VALUES (?, ?, 'TRANSFERENCIA', ?, ?)
+                """, (id_origen, id_cta_destino, monto, f"Transferencia a {nombre_destinatario}"))
+
+                connection.commit()
+                print(f"\n✅ Transferencia exitosa de ${monto:,.0f} a {nombre_destinatario}.".replace(",", "."))
+            
+            except Exception as e:
+                connection.rollback()
+                print(f"❌ Error procesando la transacción: {e}")
+                
+    
+    @staticmethod
+    def formato_clp(monto):
+        return f"${monto:,.0f}".replace(",", ".")
+    
+    
+    @staticmethod
+    def ver_historial_cliente(usuario_id):
+        from db.db import get_connection
+        
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            
+            # 1. LISTAR LAS CUENTAS DEL CLIENTE PARA QUE ELIJA
+            query_cuentas = """
+                SELECT cta.id, tc.tipo_cuenta, cta.saldo 
+                FROM cuentas cta
+                JOIN tipo_cuenta tc ON cta.id_tipo_cuenta = tc.id
+                JOIN cliente c ON cta.id_cliente = c.id
+                WHERE c.usuario_id = ?
+            """
+            cursor.execute(query_cuentas, (usuario_id,))
+            mis_cuentas = cursor.fetchall()
+
+            if not mis_cuentas:
+                print("\n❌ No tienes cuentas asociadas para ver historial.")
+                return
+
+            print("\n=== SELECCIONE CUENTA PARA VER HISTORIAL ===")
+            for i, c in enumerate(mis_cuentas, 1):
+                print(f"{i}. {c[1]} (ID: {c[0]})")
+            
+            opcion = input("\nSeleccione una cuenta (o '0' para volver): ")
+            if opcion == "0" or not opcion.isdigit() or int(opcion) > len(mis_cuentas):
+                return
+
+            # Obtenemos el ID de la cuenta elegida
+            cuenta_seleccionada = mis_cuentas[int(opcion) - 1]
+            id_cta_elegida = cuenta_seleccionada[0]
+            nombre_tipo_cta = cuenta_seleccionada[1]
+
+            # 2. MOSTRAR MOVIMIENTOS SOLO DE ESA CUENTA
+            print(f"\n=== HISTORIAL: {nombre_tipo_cta.upper()} (ID: {id_cta_elegida}) ===")
+            
+            query_movimientos = """
+                SELECT fecha, tipo_movimiento, monto, glosa
+                FROM movimientos
+                WHERE id_cuenta_origen = ?
+                ORDER BY fecha DESC
+            """
+            cursor.execute(query_movimientos, (id_cta_elegida,))
+            movimientos = cursor.fetchall()
+
+            if not movimientos:
+                print("No hay movimientos registrados en esta cuenta.")
+                return
+
+            print(f"{'FECHA':<20} | {'TIPO':<15} | {'MONTO':<12} | {'GLOSA'}")
+            print("-" * 75)
+
+            for m in movimientos:
+                fecha = m[0]
+                tipo = m[1]
+                monto_clp = Cuenta.formato_clp(m[2])
+                glosa = m[3] if m[3] else "---"
+                
+                print(f"{fecha:<20} | {tipo:<15} | {monto_clp:<12} | {glosa}")
+            
+            print("=" * 75)

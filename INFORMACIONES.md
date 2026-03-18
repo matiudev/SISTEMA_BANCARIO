@@ -17,3 +17,17 @@ Gerente debe ser capaz: registrar empleados, ver clientes, editar clientes, asgi
 Tabla 
 
 Validar rut
+
+--MATIAS NO PUDE PROBAR NADA YA QUE LA BASE DE DATO HABIA QUE REINICAR Y NO SABIA XDDD PRUEBALO Y ME INDICAS LOS ERRORES PLOX
+
+18 marzo 2:14
+cree las siguientes def en el models cuenta:
+registrar_movimiento ---- Funcion auxiliar 
+cosultar_saldo ---- Sirve para que cliente y empleado consulten saldos por cuentas
+transferir_a_terceros ---- transferencias entre cuentas Corriente/Vista. Valida: saldo suficiente, que la cuenta de origen esté ACTIVA y que el RUT destino exista en la BD
+crear_cuenta ---- Permite al empleado asignar cuentas (Corriente, Ahorro, Vista) a clientes existentes
+ver_historial_cliente ---- Ahora el cliente puede elegir que cuenta para ver su historial
+formato_clp ---- esta def es un auxiliar para formateo del dato a moneda chilena
+
+Cree la tabla transferencias:
+LA TABLA DE TRANSFERENCIA TIENE UNA CASILLA DE TIPO_MOVIMIENTO SE DEBE AGREGAR MANUALMENTE LOS TIPOS GIROS Y INGRESOS YA QUE EL SISTEMA NO ESTA PREPARADO PARA ESO
