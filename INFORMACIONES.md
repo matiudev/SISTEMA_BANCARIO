@@ -1,5 +1,12 @@
 # ARCHIVO PARA ESCRIBIR:
 
+Comandos 
+- git add
+- git commit -m "INFORMACION DEL CAMBIO"
+- git push origin main
+- git pull oirign main (Trae los cambios de los compañeros)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 - Lo que hay que agregar
 - Lo que hay que modificar
 - Lo que hay que revisar
@@ -31,3 +38,15 @@ formato_clp ---- esta def es un auxiliar para formateo del dato a moneda chilena
 
 Cree la tabla transferencias:
 LA TABLA DE TRANSFERENCIA TIENE UNA CASILLA DE TIPO_MOVIMIENTO SE DEBE AGREGAR MANUALMENTE LOS TIPOS GIROS Y INGRESOS YA QUE EL SISTEMA NO ESTA PREPARADO PARA ESO
+
+Se modifico el listado de crear cliente con ver listar cliente estaban al reves, ademas cuando se listaban los cliente daba error porque en el menu aparece como c.id pero esta se llama c._id ##corregido 
+
+Se agrego la sanitizacion de rut en una carpeta fuera de models, como utils.sanitizador se ocupo en menu.py cuando se logea y cuando se registra un cliente nuevo estandar chileno
+
+se agrego obenter cuentas por el rut en cuentas 359
+
+Se modifico la conexion de cliente y cuenta, abria 2 veces la conexion y daba error
+
+Se creo en cliente buscar por rut en cliente.py y en cuenta.py 
+
+

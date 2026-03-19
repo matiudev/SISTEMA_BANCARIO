@@ -75,7 +75,7 @@ def init_db():
             id_cliente INTEGER NOT NULL,
             id_tipo_cuenta INTEGER NOT NULL,
             saldo DECIMAL(10, 2) DEFAULT 0.0,
-            est ado TEXT DEFAULT 'Activa',                       
+            estado TEXT DEFAULT 'Activa',                       
             FOREIGN KEY (id_cliente) REFERENCES cliente(id),
             FOREIGN KEY (id_tipo_cuenta) REFERENCES tipo_cuenta(id)
         )""")

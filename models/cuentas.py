@@ -1,4 +1,7 @@
 from db.db import get_connection
+from utils.sanitizador import sanitizar_rut
+from models.cliente import Cliente
+
 
 class Cuenta:
     def __init__(self, id_cliente, id_tipo_cuenta, saldo=0.0, estado="Activa", id_cuenta=None):
@@ -38,11 +41,11 @@ class Cuenta:
                 print(f"{cl[0]:<4} | {cl[1]:<12} | {nombre_full}")
             
             # 2. SELECCIÓN DEL DUEÑO
-            id_cliente = input("\nIngrese el ID del cliente de la lista superior: ")
+            id_cliente = int(input("\nIngrese el ID del cliente de la lista superior: "))
             
             # 3. SELECCIÓN DE TIPO (Usando los IDs de tu tabla tipo_cuenta)
             print("\nTipos de cuenta: 1. Corriente | 2. Ahorro | 3. Vista")
-            id_tipo = input("Seleccione el N° del tipo de cuenta: ")
+            id_tipo = int(input("Seleccione el N° del tipo de cuenta: "))
             
             # 4. MONTO INICIAL
             try:
@@ -66,11 +69,12 @@ class Cuenta:
                 if monto_inicial > 0:
                     # Usamos tu función auxiliar registrar_movimiento
                     Cuenta.registrar_movimiento(
-                        id_nueva_cuenta, 
-                        'DEPOSITO', 
-                        monto_inicial, 
+                        connection,
+                        id_nueva_cuenta,
+                        'DEPOSITO',
+                        monto_inicial,
                         glosa="Apertura de cuenta"
-                    )
+)
 
                 connection.commit()
                 print(f"\n✅ Cuenta N°{id_nueva_cuenta} creada con éxito.")
@@ -114,8 +118,27 @@ class Cuenta:
                 id_cta = input("\nIngrese el ID de la cuenta a detallar: ")
             
             else:
-                # Si es EMPLEADO, puede preguntar por cualquier ID directamente
-                id_cta = input("Ingrese el ID de la cuenta del cliente: ")
+                id_cliente = input("Ingrese el ID del cliente: ")
+
+                query_lista = """
+                    SELECT cta.id, tc.tipo_cuenta, cta.saldo
+                    FROM cuentas cta
+                    JOIN tipo_cuenta tc ON cta.id_tipo_cuenta = tc.id
+                    JOIN cliente c ON cta.id_cliente = c.id
+                    WHERE cta.id_cliente = ?
+                    """
+                cursor.execute(query_lista, (id_cliente,))
+                cuentas_cliente = cursor.fetchall()
+
+                if not cuentas_cliente:
+                    print("❌ El cliente no tiene cuentas.")
+                    return
+
+                print("\nCuentas del cliente:")
+                for c in cuentas_cliente:
+                    print(f"ID Cuenta: {c[0]} | Tipo: {c[1]}")
+
+                id_cta = input("\nIngrese el ID de la cuenta a consultar: ")
 
             # Consulta final con JOIN para traer el nombre del tipo de cuenta
             query_detalle = """
@@ -157,21 +180,21 @@ class Cuenta:
             return cursor.fetchall()
         
     @staticmethod
-    def registrar_movimiento(id_origen, tipo, monto, id_destino=None, glosa=""):
+  
+    def registrar_movimiento(connection, id_origen, tipo, monto, id_destino=None, glosa=""):
         """
-        Función interna para dejar constancia de cada operación.
-        monto: valor en CLP (Entero)
-        tipo: 'DEPOSITO', 'RETIRO' o 'TRANSFERENCIA'
+        Registra un movimiento usando la misma conexión activa.
         """
-        from db.db import get_connection
-        with get_connection() as connection:
-            cursor = connection.cursor()
-            query = """
-                INSERT INTO movimientos (id_cuenta_origen, id_cuenta_destino, tipo_movimiento, monto, glosa)
-                VALUES (?, ?, ?, ?, ?)
-            """
-            cursor.execute(query, (id_origen, id_destino, tipo, monto, glosa))
-            connection.commit()
+
+        cursor = connection.cursor()
+
+        query = """
+         INSERT INTO movimientos
+         (id_cuenta_origen, id_cuenta_destino, tipo_movimiento, monto, glosa)
+            VALUES (?, ?, ?, ?, ?)
+        """
+
+        cursor.execute(query, (id_origen, id_destino, tipo, monto, glosa))
 
     @staticmethod
     def transferir_a_terceros(usuario_id):
@@ -217,6 +240,7 @@ class Cuenta:
             # 2. IDENTIFICAR DESTINATARIO POR RUT
             print("\n--- DATOS DEL DESTINATARIO ---")
             rut_destino = input("Ingrese el RUT del destinatario: ")
+            rut_destino = sanitizar_rut(rut_destino)
             
             query_destinatario = """
                 SELECT cta.id, u.nombre, u.apellido 
@@ -333,3 +357,52 @@ class Cuenta:
                 print(f"{fecha:<20} | {tipo:<15} | {monto_clp:<12} | {glosa}")
             
             print("=" * 75)
+
+    def obtener_cuentas_por_rut(rut):
+        from utils.sanitizador import sanitizar_rut
+        rut = sanitizar_rut(rut)
+
+        with get_connection() as connection:
+            cursor = connection.cursor()
+
+            query = """
+            SELECT cu.id, cu.saldo, cu.estado
+            FROM cuentas cu
+            JOIN cliente c ON cu.id_cliente = c.id
+            JOIN usuario u ON c.usuario_id = u.id
+            WHERE u.rut = ?
+            """
+
+            cursor.execute(query, (rut,))
+            return cursor.fetchall()
+        
+    def mostrar_cliente_y_cuentas_por_rut(rut):
+        rut = sanitizar_rut(rut)
+
+        cliente = Cliente.buscar_por_rut(rut)
+
+        if not cliente:
+            print("Cliente no encontrado")
+            return
+
+        print("\n=== DATOS DEL CLIENTE ===")
+        print(f"RUT: {cliente.rut}")
+        print(f"Nombre: {cliente.nombres} {cliente.apellidos}")
+        print(f"Teléfono: {cliente.telefono}")
+        print(f"Correo: {cliente.correo}")
+
+        cuentas = Cuenta.obtener_cuentas_por_rut(rut)
+
+        print("\n=== CUENTAS ===")
+
+        if cuentas:
+         for c in cuentas:
+            print(f"""
+         Cuenta ID: {c[0]}
+         Saldo: ${c[1]}
+         Estado: {c[2]}
+         ------------------------
+         """)
+        else:
+            print("No tiene cuentas registradas")
+

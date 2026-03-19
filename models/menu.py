@@ -1,6 +1,9 @@
 from models.cliente import Cliente
 from models.cuentas import Cuenta
 from models.auth import Auth
+from utils.sanitizador import sanitizar_rut
+from models.cliente import Cliente
+from models.cuentas import Cuenta
 import getpass
 
 
@@ -16,6 +19,7 @@ class Menu:
             print("\n--- AUTENTICACIÓN ---")
 
             rut = input("Introduzca su Rut: ")
+            rut = sanitizar_rut(rut)
             password = getpass.getpass("Ingrese su Contraseña: ")
 
             usuario = Auth.login(rut, password)
@@ -25,7 +29,7 @@ class Menu:
                 continue
 
             print("✅ Inicio de sesión Exitoso!")
-            print(f"Bienvenido {usuario['nombre']}...")
+            print(f"Bienvenido {usuario}...")
 
             rol = usuario["rol"]
 
@@ -48,36 +52,39 @@ class Menu:
             print("5. Retirar")
             print("6. Transferencia")
             print("7. Listar Clientes")
+            print("8. Consulta cliente y cuenta")
             print("0. Cerrar Sesión")
 
             opcion = input("\nSeleccione una opción: ")
 
             match opcion:
                 case "1":
-                    clientes = Cliente.listar_clientes()
-                    for c in clientes:
-                        print(f"ID: {c.id} - Nombre: {c.nombres} {c.apellidos}")
+                    clientes = Cliente.registrar_cliente()
+                    print("✅ Cliente registrado correctamente")
                 case "2":
                     Cuenta.crear_cuenta()
                 case "3":
-                    Cuenta.consultar_saldo()
+                    Cuenta.consultar_saldo(usuario)
                 case "4" | "5":
                     print("Recuerda realizar los depósitos/retiros vía INSERT por ahora.")
                 case "6":
                     print("Función delegada a módulos de cliente o manual.")
                 case "7":
+                    clientes = Cliente.listar_clientes()
                     print("\n" + "="*80)
                     print(f"{'ID':<4} | {'RUT':<12} | {'NOMBRE COMPLETO':<25} | {'CORREO'}")
                     print("-" * 80)
                     
-                    clientes = Cliente.listar_clientes()
-                    
                     for c in clientes:
                         # Accedemos a los atributos del objeto que creó tu compañero
                         nombre_full = f"{c.nombres} {c.apellidos}"
-                        print(f"{c.id:<4} | {c.rut:<12} | {nombre_full:<25} | {c.correo}")
+                        print(f"{c._id:<4} | {c.rut:<12} | {nombre_full:<25} | {c.correo}")
                     
                     print("="*80)
+                case "8":
+                    rut = input("Ingrese RUT del cliente: ")
+                    Cuenta.mostrar_cliente_y_cuentas_por_rut(rut)
+
                 case "0":
                     return
                 case _:

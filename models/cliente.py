@@ -1,5 +1,9 @@
 from db.db import get_connection
 import getpass
+from utils.sanitizador import sanitizar_rut
+import bcrypt
+
+
 class Cliente:
     def __init__(self, rut, nombres, apellidos, fecha_nacimiento, direccion, telefono, correo, id = None):
         self._id = id
@@ -21,6 +25,7 @@ class Cliente:
     def registrar_cliente():
         print("\n=== REGISTRAR CLIENTE ===")
         rut = input("Ingrese su Rut: ")
+        rut = sanitizar_rut(rut)
         nombres = input("Nombres: ")
         apellidos = input("Apellidos: ")
         fecha_nacimiento = input("Fecha nacimiento (YYYY-MM-DD): ")
@@ -28,6 +33,11 @@ class Cliente:
         telefono = input("Teléfono: ")
         correo = input("Correo: ")
         password = getpass.getpass("Ingrese su Contraseña: ")
+
+        # 🔐 Encriptar contraseña
+        password_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        password_hash = bcrypt.hashpw(password_bytes, salt)
 
         with get_connection() as connection:
             cursor = connection.cursor()
@@ -38,7 +48,7 @@ class Cliente:
                 VALUES (?,?,?,?,?,?,?,?);
             """
 
-            usuario_data = (rut, nombres, apellidos, fecha_nacimiento, direccion, telefono, correo, password)
+            usuario_data = (rut, nombres, apellidos, fecha_nacimiento, direccion, telefono, correo, password_hash)
             cursor.execute(insert_query, usuario_data)
 
             usuario_id = cursor.lastrowid
@@ -82,3 +92,36 @@ class Cliente:
                     clientes.append(cliente)
 
             return clientes
+        
+    @classmethod
+    def buscar_por_rut(cls, rut):
+    
+        rut = sanitizar_rut(rut)
+
+        with get_connection() as connection:
+            cursor = connection.cursor()
+
+            query = """
+            SELECT c.id, u.rut, u.nombre, u.apellido, u.telefono, u.correo
+            FROM cliente c
+            JOIN usuario u ON c.usuario_id = u.id
+            WHERE u.rut = ?
+            """
+
+            cursor.execute(query, (rut,))
+            row = cursor.fetchone()
+
+            if row:
+                cliente = cls(
+                    rut=row[1],
+                    nombres=row[2],
+                    apellidos=row[3],
+                    fecha_nacimiento=None,
+                    direccion=None, 
+                    telefono=row[4],
+                    correo=row[5]
+                )
+                cliente._id = row[0]
+                return cliente
+            else:
+                return None

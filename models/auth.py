@@ -17,12 +17,20 @@ class Auth:
             
             usuario_id, hashed_db = usuario
 
+            if not hashed_db:
+                print("❌ Usuario sin contraseña válida en BD.")
+                return None
+
             # Asegurarnos de que sea bytes
             if isinstance(hashed_db, str):
                 hashed_db = hashed_db.encode('utf-8')
 
             # Verificar contraseña
-            if not bcrypt.checkpw(password.encode('utf-8'), hashed_db):
+            try:
+                if not bcrypt.checkpw(password.encode('utf-8'), hashed_db):
+                    return None
+            except ValueError:
+                print("❌ Hash de contraseña inválido.")
                 return None
 
             # verificar rol
@@ -37,3 +45,5 @@ class Auth:
             cursor.execute("SELECT id FROM gerente WHERE usuario_id = ?", (usuario_id,))
             if cursor.fetchone():
                 return {"id": usuario_id, "rol": "gerente"}
+            
+            return none

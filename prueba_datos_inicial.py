@@ -1,6 +1,9 @@
 # SOLO DE PRUEBA NO EJECUTAR
 # SOLO DE PRUEBA NO EJECUTAR
 
+from db.db import get_connection
+import bcrypt
+
 with get_connection() as connection:
     cursor = connection.cursor()
 
