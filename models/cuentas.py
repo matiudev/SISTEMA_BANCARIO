@@ -180,7 +180,7 @@ class Cuenta:
             return cursor.fetchall()
         
     @staticmethod
-  
+
     def registrar_movimiento(connection, id_origen, tipo, monto, id_destino=None, glosa=""):
         """
         Registra un movimiento usando la misma conexión activa.
@@ -189,8 +189,8 @@ class Cuenta:
         cursor = connection.cursor()
 
         query = """
-         INSERT INTO movimientos
-         (id_cuenta_origen, id_cuenta_destino, tipo_movimiento, monto, glosa)
+        INSERT INTO movimientos
+        (id_cuenta_origen, id_cuenta_destino, tipo_movimiento, monto, glosa)
             VALUES (?, ?, ?, ?, ?)
         """
 
@@ -274,15 +274,32 @@ class Cuenta:
                 cursor.execute("UPDATE cuentas SET saldo = saldo - ? WHERE id = ?", (monto, id_origen))
                 # Sumar a destino
                 cursor.execute("UPDATE cuentas SET saldo = saldo + ? WHERE id = ?", (monto, id_cta_destino))
+                # Obtener el rut del remitente
+                cursor.execute("SELECT rut FROM usuario WHERE id = ?", (usuario_id,))
+                rut_remitente = cursor.fetchone()[0]
                 
-                # Registrar el movimiento
-                cursor.execute("""
-                    INSERT INTO movimientos (id_cuenta_origen, id_cuenta_destino, tipo_movimiento, monto, glosa)
-                    VALUES (?, ?, 'TRANSFERENCIA', ?, ?)
-                """, (id_origen, id_cta_destino, monto, f"Transferencia a {nombre_destinatario}"))
+                # Registrar el movimiento para el remitente
+                Cuenta.registrar_movimiento(
+                    connection,
+                    id_origen,
+                    'TRANSFERENCIA ENVIADA',
+                    monto,
+                    id_destino=id_cta_destino,
+                    glosa=f"Transferencia a {nombre_destinatario}"
+                )
+                
+                # Registrar el movimiento para el receptor
+                Cuenta.registrar_movimiento(
+                    connection,
+                    id_cta_destino,
+                    'TRANSFERENCIA RECIBIDA',
+                    monto,
+                    id_destino=id_origen,
+                    glosa=f"Recibiste transferencia de RUT: {rut_remitente}"
+                )
 
                 connection.commit()
-                print(f"\n✅ Transferencia exitosa de ${monto:,.0f} a {nombre_destinatario}.".replace(",", "."))
+                print(f"\n✅ Transferencia exitosa de {Cuenta.formato_clp(monto)} a {nombre_destinatario}.")
             
             except Exception as e:
                 connection.rollback()

@@ -27,9 +27,11 @@ class Menu:
             if not usuario:
                 print("❌ RUT o contraseña incorrectos")
                 continue
+            
+            nombre_pantalla = usuario.get('nombre', 'Usuario')
 
             print("✅ Inicio de sesión Exitoso!")
-            print(f"Bienvenido {usuario}...")
+            print(f"Bienvenido {nombre_pantalla}")
 
             rol = usuario["rol"]
 

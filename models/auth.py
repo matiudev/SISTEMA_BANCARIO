@@ -7,7 +7,7 @@ class Auth:
     def login(rut, password):
         with get_connection() as connection:
             cursor = connection.cursor()
-            select_query = "SELECT id, password FROM usuario WHERE rut = ?"
+            select_query = "SELECT id, password, nombre FROM usuario WHERE rut = ?"
 
             cursor.execute(select_query, (rut,))
             usuario = cursor.fetchone()
@@ -15,7 +15,7 @@ class Auth:
             if not usuario:
                 return None
             
-            usuario_id, hashed_db = usuario
+            usuario_id, hashed_db, nombre_usuario = usuario
 
             if not hashed_db:
                 print("❌ Usuario sin contraseña válida en BD.")
@@ -36,14 +36,14 @@ class Auth:
             # verificar rol
             cursor.execute("SELECT id FROM cliente WHERE usuario_id = ?", (usuario_id,))
             if cursor.fetchone():
-                return {"id": usuario_id, "rol": "cliente"}
+                return {"id": usuario_id, "rol": "cliente", "nombre": nombre_usuario}
 
             cursor.execute("SELECT id FROM empleado WHERE usuario_id = ?", (usuario_id,))
             if cursor.fetchone():
-                return {"id": usuario_id, "rol": "empleado"}
+                return {"id": usuario_id, "rol": "empleado", "nombre": nombre_usuario}
 
             cursor.execute("SELECT id FROM gerente WHERE usuario_id = ?", (usuario_id,))
             if cursor.fetchone():
-                return {"id": usuario_id, "rol": "gerente"}
+                return {"id": usuario_id, "rol": "gerente", "nombre": nombre_usuario}
             
             return none

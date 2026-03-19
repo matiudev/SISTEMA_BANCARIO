@@ -50,3 +50,12 @@ Se modifico la conexion de cliente y cuenta, abria 2 veces la conexion y daba er
 Se creo en cliente buscar por rut en cliente.py y en cuenta.py 
 
 
+--------------------------------------------------------------------------------------------------------------------------
+
+3AM Emilio
+arrgle el problema de no ver el nombre en el login donde dice "Bienvenido {usuario}"
+ahora el remitente y el receptor ven el movimiento de sus cuentas las transferencias
+
+ATT: yo el pixula
+
+--------------------------------------------------------------------------------------------------------------------------
