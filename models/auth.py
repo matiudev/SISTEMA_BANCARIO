@@ -46,4 +46,4 @@ class Auth:
             if cursor.fetchone():
                 return {"id": usuario_id, "rol": "gerente", "nombre": nombre_usuario}
             
-            return none
+            return None
