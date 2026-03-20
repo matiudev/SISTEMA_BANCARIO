@@ -72,3 +72,6 @@ Queda por hacer INSTER manualmente para tener registrado los retiros y depositos
 ⚠️ VALIDAR TODOS LOS CAMPOS DONDE HAYA INPUT
 
 ⚠️ Crear una funcion que genere un numero de cuenta aleatorio de 10 digitos al momento de crear una cuenta y estye no se tiene que repetir 
+
+ESPERANZA ESPERANZA ESPERANZA ESPERANZA
+⚠️ El empleado debe se capaz de eliminar cuentas y personas PERO SOLO PUEDE ELIMINAR USUARIOS SI NO CONTIENEN CUENTAS ⚠️ 

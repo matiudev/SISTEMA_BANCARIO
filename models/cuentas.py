@@ -45,8 +45,9 @@ class Cuenta:
             
             # 3. SELECCIÓN DE TIPO (Usando los IDs de tu tabla tipo_cuenta)
             print("\nTipos de cuenta: 1. Corriente | 2. Ahorro | 3. Vista")
-            id_tipo = int(input("Seleccione el N° del tipo de cuenta: "))
-            
+            id_tipo = int(input("Seleccione el tipo de cuenta: "))
+            nuevo_numero = Cuenta.generar_numero_cuenta(id_tipo)
+            print(f"Número de cuenta: {nuevo_numero}")
             # 4. MONTO INICIAL
             try:
                 monto_inicial = int(input("Monto de apertura (CLP): $"))
