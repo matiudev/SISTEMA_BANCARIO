@@ -59,3 +59,5 @@ ahora el remitente y el receptor ven el movimiento de sus cuentas las transferen
 ATT: yo el pixula
 
 --------------------------------------------------------------------------------------------------------------------------
+
+Queda por hacer INSTER manualmente para tener registrado los retiros y depositos en la tabla movimientos, tambien hay que hacer un reset de la BD.
