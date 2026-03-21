@@ -55,7 +55,7 @@ def create_table():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             id_cliente INTEGER NOT NULL,
             id_tipo_cuenta INTEGER NOT NULL,
-            numero_cuenta INTEGER NOT NULL,
+            numero_cuenta TEXT NOT NULL,
             saldo DECIMAL(10, 2) DEFAULT 0.0,
             estado TEXT DEFAULT 'Activa',                       
             FOREIGN KEY (id_cliente) REFERENCES cliente(id),

@@ -16,53 +16,16 @@ class Cliente:
         self.telefono = telefono
         self.correo = correo
 
-        # --------- MÉTODOS DE INSTANCIA (self) ---------
-
+    
+    # --------- MÉTODOS DE INSTANCIA (self) ---------
     def __str__(self):
         return f"{self._id}. {self.rut} - {self.nombres} {self.apellidos} | Direccion: {self.direccion} | Correo: {self.correo} - {self.telefono} | Nacimiento: {self.fecha_nacimiento}"
     
-    @staticmethod
-    def registrar_cliente():
-        print("\n=== REGISTRAR CLIENTE ===")
-        rut = validar_rut("Ingrese rut de cliente: ")
-        nombres = input("Nombres: ")
-        apellidos = input("Apellidos: ")
-        fecha_nacimiento = input("Fecha nacimiento (YYYY-MM-DD): ")
-        direccion = input("Dirección: ")
-        telefono = input("Teléfono: ")
-        correo = input("Correo: ")
-        password = getpass.getpass("Ingrese su Contraseña: ")
-
-        # 🔐 Encriptar contraseña
-        password_bytes = password.encode('utf-8')
-        salt = bcrypt.gensalt()
-        password_hash = bcrypt.hashpw(password_bytes, salt)
-
-        with get_connection() as connection:
-            cursor = connection.cursor()
-            
-            # COMANDO SQL
-            insert_query = """
-                INSERT INTO usuario (rut, nombre, apellido, fecha_nacimiento, direccion, telefono, correo, password)
-                VALUES (?,?,?,?,?,?,?,?);
-            """
-
-            usuario_data = (rut, nombres, apellidos, fecha_nacimiento, direccion, telefono, correo, password_hash)
-            cursor.execute(insert_query, usuario_data)
-
-            usuario_id = cursor.lastrowid
-
-            insert_query = """INSERT INTO cliente (usuario_id) VALUES (?);"""
-
-            cursor.execute(insert_query, (usuario_id,))
-            connection.commit()
-        
 
 
+    # --------- MÉTODOS DE CLASE (cls) ---------
     @classmethod
-    def listar_clientes(cls):
-        print("\n=== LISTADO CLIENTES ===")
-        
+    def obtener_clientes(cls):        
         with get_connection() as connection:
             cursor = connection.cursor()
 
@@ -91,6 +54,39 @@ class Cliente:
                     clientes.append(cliente)
 
             return clientes
+        
+
+    @classmethod
+    def registrar_cliente(cls,data):
+
+        cliente = cls.buscar_por_rut(data["rut"])
+        
+        if cliente:
+            return None, "❌ El cliente ya existe"
+        
+        # 🔐 Encriptar contraseña
+        password_hash = bcrypt.hashpw(data["password"].encode('utf-8'), bcrypt.gensalt())
+
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            
+            # COMANDO SQL
+            insert_query = """
+                INSERT INTO usuario (rut, nombre, apellido, fecha_nacimiento, direccion, telefono, correo, password)
+                VALUES (?,?,?,?,?,?,?,?);
+            """
+
+            usuario_data = (data["rut"], data["nombres"], data["apellidos"], data["fecha_nacimiento"], data["direccion"], data["telefono"], data["correo"], password_hash)
+            cursor.execute(insert_query, usuario_data)
+
+            usuario_id = cursor.lastrowid
+
+            insert_query = """INSERT INTO cliente (usuario_id) VALUES (?);"""
+
+            cursor.execute(insert_query, (usuario_id,))
+            connection.commit()
+
+            return cursor.lastrowid, None
         
     @classmethod
     def buscar_por_rut(cls, rut):

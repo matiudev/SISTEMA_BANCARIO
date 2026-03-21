@@ -35,15 +35,18 @@ class Auth:
 
             # verificar rol
             cursor.execute("SELECT id FROM cliente WHERE usuario_id = ?", (usuario_id,))
-            if cursor.fetchone():
-                return {"id": usuario_id, "rol": "cliente", "nombre": nombre_usuario}
+            cliente = cursor.fetchone()
+            if cliente:
+                return {"id": cliente[0], "rol": "cliente", "nombre": nombre_usuario}
 
             cursor.execute("SELECT id FROM empleado WHERE usuario_id = ?", (usuario_id,))
-            if cursor.fetchone():
-                return {"id": usuario_id, "rol": "empleado", "nombre": nombre_usuario}
+            empleado = cursor.fetchone()
+            if empleado:
+                return {"id": empleado[0], "rol": "empleado", "nombre": nombre_usuario} 
 
             cursor.execute("SELECT id FROM gerente WHERE usuario_id = ?", (usuario_id,))
-            if cursor.fetchone():
-                return {"id": usuario_id, "rol": "gerente", "nombre": nombre_usuario}
+            gerente = cursor.fetchone()
+            if gerente:
+                return {"id": gerente[0], "rol": "gerente", "nombre": nombre_usuario}
             
             return None

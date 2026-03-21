@@ -74,10 +74,10 @@ def seed_data():
         # CUENTAS
         cursor.execute("""
             INSERT OR IGNORE INTO cuentas (id, id_cliente, id_tipo_cuenta, numero_cuenta, saldo, estado) VALUES (?, ?, ?, ?, ?, ?)
-        """,(1, 1, 3, 111121061232, 20000, 'Activa'))
+        """,(1, 1, 3, "AHO-87780486", 20000, 'Activa'))
 
         cursor.execute("""
             INSERT OR IGNORE INTO cuentas (id, id_cliente, id_tipo_cuenta, numero_cuenta, saldo, estado) VALUES (?, ?, ?, ?, ?, ?)
-        """,(2, 2, 1, 111119876543, 12000, 'Activa'))
+        """,(2, 2, 1, "CTE-17260308", 12000, 'Activa'))
         
         print("🌱 Datos iniciales insertados")
