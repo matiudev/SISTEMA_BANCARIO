@@ -39,9 +39,6 @@ class Menu:
                 self.menu_cliente(usuario)
             elif rol == "empleado":
                 self.menu_empleado(usuario)
-            
-            # elif rol == "gerente":
-            #     Menu.menu_gerente()
 
 
     def menu_empleado(self, usuario):
@@ -52,9 +49,11 @@ class Menu:
             print("3. Consultar Saldo")
             print("4. Listar Clientes")
             print("5. Consulta cliente y cuenta")
+            print("6. Eliminar Cuenta")
+            print("7. Eliminar Cliente")
             print("0. Cerrar Sesión")
 
-            opcion = validar_input_entero("Seleccione una opción: ", 0, 5)
+            opcion = validar_input_entero("Seleccione una opción: ", 0, 7)
 
             match opcion:
                 case 1:
@@ -72,6 +71,10 @@ class Menu:
                     self.listar_clientes(clientes)
                 case 5:
                     self.info_cliente()
+                case 6:
+                    self.eliminar_cuenta()
+                case 7:
+                    self.eliminar_cliente()
                 case 0:
                     return
 
@@ -326,3 +329,71 @@ class Menu:
                 print(f"Cuenta ID: {c[0]} | Saldo: ${c[1]:,.0f} | N°: {c[3]} | Estado: {c[2]}".replace(",", "."))
         else:
             print("❌ No hay cuentas registradas.")
+    
+
+
+    def eliminar_cuenta(self):
+        rut = validar_rut()
+        cliente = Cliente.buscar_por_rut(rut)
+
+        if not cliente:
+            print("❌ Cliente no encontrado")
+            return
+
+        print("\n=== DATOS DEL CLIENTE ===")
+        print(f"RUT: {cliente.rut}")
+        print(f"Nombre: {cliente.nombres} {cliente.apellidos}")
+
+        cuentas = Cuenta.obtener_cuentas_cliente(cliente._id)
+        if not cuentas:
+            print("❌ No hay cuentas registradas.")
+            return
+
+        for c in cuentas:
+            print(f"Cuenta ID: {c.id} | Saldo: ${c.saldo:,.0f} | N°: {c.numero_cuenta} | Estado: {c.estado}".replace(",", "."))
+
+        selec_cuenta = seleccionar_cuenta(cuentas)
+        if not selec_cuenta:
+            return
+
+        if selec_cuenta.saldo > 0:
+            print(f"⚠️  La cuenta tiene saldo de ${selec_cuenta.saldo:,.0f}. ¿Desea eliminarla de todas formas?".replace(",", "."))
+
+        confirmacion = input(f"¿Confirma eliminar la cuenta ID {selec_cuenta.id}? Todos sus registros seran eliminados (s/n): ").strip().lower()
+        if confirmacion != "s":
+            print("Operación cancelada.")
+            return
+
+        exito = Cuenta.eliminar_cuenta(selec_cuenta.id)
+        if exito:
+            print("✅ Cuenta eliminada correctamente.")
+        else:
+            print("❌ No se pudo eliminar la cuenta.")
+    
+
+
+    def eliminar_cliente(self):
+        rut = validar_rut()
+        cliente = Cliente.buscar_por_rut(rut)
+
+        if not cliente:
+            print("❌ Cliente no encontrado.")
+            return
+
+        print("\n=== DATOS DEL CLIENTE ===")
+        print(f"RUT: {cliente.rut}")
+        print(f"Nombre: {cliente.nombres} {cliente.apellidos}")
+        print(f"Teléfono: {cliente.telefono}")
+        print(f"Correo: {cliente.correo}")
+
+        confirmacion = input(f"¿Confirma eliminar al cliente {cliente.nombres} {cliente.apellidos}? Todos sus datos serán eliminados (s/n): ").strip().lower()
+        if confirmacion != "s":
+            print("Operación cancelada.")
+            return
+
+        exito, error = Cliente.eliminar_cliente(cliente._id)
+        if exito:
+            print("✅ Cliente eliminado correctamente.")
+        else:
+            print(error)
+

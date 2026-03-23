@@ -1,0 +1,116 @@
+# 🏦 Sistema Bancario
+
+Sistema de gestión bancaria desarrollado en Python con base de datos SQLite. 
+Permite administrar clientes, cuentas y movimientos desde roles diferenciados (empleado / cliente).
+
+---
+
+## ⚙️ Requisitos previos
+
+- Python 3.10 o superior
+- pip
+
+---
+
+## 📦 Instalación de dependencias
+
+```bash
+pip install bcrypt
+```
+
+---
+
+## 🗂️ Estructura del proyecto
+
+```
+sistema_bancario/
+│
+├── db/
+│   ├── init_db.py       # Conexión y función de inicialización
+│   ├── schema.py        # Creación de tablas
+│   └── seeds.py         # Datos iniciales
+│
+├── models/
+│   ├── auth.py
+│   ├── cliente.py
+│   ├── cuentas.py
+│   └── menu.py
+│
+├── utils/
+│   └── utils.py
+│
+└── main.py              # Punto de entrada
+```
+
+---
+
+## 🚀 Cómo iniciar el proyecto
+
+Simplemente ejecuta el archivo principal. La base de datos se inicializa automáticamente al arrancar:
+
+```bash
+python main.py
+```
+
+Esto creará el archivo `db/sistema_bancario.db` con las tablas y datos base en caso de no existir.
+
+---
+
+## 🔐 Credenciales de acceso
+
+Todos los usuarios comparten la misma contraseña por defecto:
+
+```
+Contraseña: inacap-2026
+```
+
+### 👔 Empleado
+
+| Campo  | Valor           |
+|--------|-----------------|
+| RUT    | `22215023-K`    |
+| Nombre | Matias Alberto Garcia Pomatanta |
+| Acceso | Menú Empleado   |
+
+### 👤 Clientes
+
+| RUT           | Nombre                        |
+|---------------|-------------------------------|
+| `21061232-7`  | Emilio Jose Asencio Soto      |
+| `11676291-9`  | Valentina Paz Rojas Castillo  |
+
+---
+
+## 🏦 Datos de prueba
+
+### Sucursales
+| ID | Nombre                  | Dirección             |
+|----|-------------------------|-----------------------|
+| 1  | Sucursal Sector Sur     | Francisco Bilbao 3051 |
+| 2  | Sucursal Sector Norte   | Emilio Bilbao 3051    |
+
+### Cuentas registradas
+| N° Cuenta      | Tipo    | Cliente  | Saldo inicial |
+|----------------|---------|----------|---------------|
+| `AHO-87780486` | Vista   | Emilio   | $20.000       |
+| `CTE-17260308` | Corriente | Valentina | $12.000    |
+
+---
+
+## 🛠️ Funcionalidades del Menú Empleado
+
+- Registrar cliente
+- Crear cuenta
+- Consultar saldo
+- Listar clientes
+- Consultar cliente y cuenta
+- Eliminar cuenta
+- Eliminar cliente
+
+---
+
+## 📝 Notas
+
+- La base de datos se genera automáticamente en `db/sistema_bancario.db`.
+- Si necesitas reiniciar los datos, elimina el archivo `db/sistema_bancario.db` y vuelve a ejecutar `main.py`.
+- Las contraseñas se almacenan encriptadas con `bcrypt`.

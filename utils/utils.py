@@ -88,17 +88,21 @@ def validar_input_fecha(mensaje):
 
 # ======================================
 def seleccionar_cuenta(cuentas, titulo="Seleccione cuenta: "):
-    id_cta = input(titulo)
-    
-    if id_cta == "0":  # ← comparas string con string, no hay problema
+    id_cta = input(titulo).strip()
+
+    if not id_cta:
+        print("❌ Debe ingresar un ID.")
         return None
-    
+
+    if id_cta == "0":
+        return None
+
     cuenta_valida = next((c for c in cuentas if str(c.id) == str(id_cta)), None)
-    
+
     if not cuenta_valida:
-        print("❌ Cuenta no válida o no te pertenece")
+        print("❌ Cuenta no válida o no te pertenece.")
         return None
-    
+
     return cuenta_valida
 
 

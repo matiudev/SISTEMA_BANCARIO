@@ -171,6 +171,30 @@ class Cuenta:
 
             cursor.execute(query, (rut,))
             return cursor.fetchall()
+    
+    @staticmethod
+    def eliminar_cuenta(cuenta_id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            try:
+                # 1. Eliminar movimientos donde la cuenta es origen o destino
+                cursor.execute("""
+                    DELETE FROM movimientos
+                    WHERE id_cuenta_origen = ? OR id_cuenta_destino = ?
+                """, (cuenta_id, cuenta_id))
+
+                # 2. Eliminar la cuenta
+                cursor.execute("""
+                    DELETE FROM cuentas WHERE id = ?
+                """, (cuenta_id,))
+
+                connection.commit()
+                return True
+
+            except Exception as e:
+                connection.rollback()
+                print(f"❌ Error al eliminar cuenta: {e}")
+                return False
 
     # --------- MÉTODOS DE INSTANCIA (self) ---------
     

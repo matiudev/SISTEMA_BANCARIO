@@ -21,7 +21,7 @@ def seed_data():
             "2006-09-22",
             "San Emilio 2020",
             "56922222222",
-            "correo@correo.com",
+            "correo@gmail.com",
             hashed
         ),(
             2,
@@ -31,17 +31,17 @@ def seed_data():
             "2001-01-01",
             "San Emilio 2021",
             "56911111111",
-            "correo@correo.com",
+            "correo@gmail.com",
             hashed
         ),(
             3,
-            "19876543-2",
+            "11676291-9",
             "Valentina Paz",
             "Rojas Castillo",
             "1999-05-14",
             "Los Pinos 456",
             "56933333333",
-            "valentina@email.com",
+            "valentina@gmail.com",
             hashed
         ),]
 

@@ -117,3 +117,31 @@ class Cliente:
                 return cliente
             else:
                 return None
+    
+    @classmethod
+    def eliminar_cliente(cls, cliente_id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+
+            # Verificar si el cliente tiene cuentas activas
+            cursor.execute("SELECT COUNT(*) FROM cuentas WHERE id_cliente = ?", (cliente_id,))
+            total_cuentas = cursor.fetchone()[0]
+
+            if total_cuentas > 0:
+                return False, "❌ El cliente tiene cuentas activas. Elimínelas primero."
+
+            # Obtener usuario_id antes de eliminar
+            cursor.execute("SELECT usuario_id FROM cliente WHERE id = ?", (cliente_id,))
+            row = cursor.fetchone()
+
+            if not row:
+                return False, "❌ Cliente no encontrado."
+
+            usuario_id = row[0]
+
+            # Eliminar cliente y usuario en cascada
+            cursor.execute("DELETE FROM cliente WHERE id = ?", (cliente_id,))
+            cursor.execute("DELETE FROM usuario WHERE id = ?", (usuario_id,))
+            connection.commit()
+
+            return True, None
